@@ -426,6 +426,12 @@ function Object:ClearDrawings()
     end
 end
 
+function Object:ShowDrawings()
+    for i,v in next, self.Objects do
+        v.Visible = true
+    end
+end
+
 function Object:Refresh()
     local Model = self.Model
     local Quad = self:GetQuad()
