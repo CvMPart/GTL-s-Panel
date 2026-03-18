@@ -54,7 +54,6 @@ local imageid = imageid or "9160626035"
 local colorid = colorid or "#b36415"
 local MoonLIB = Instance.new("ScreenGui")
 local imagestring = Instance.new("StringValue")
-dragGUI(MoonLIB)
 local Frame = Instance.new("Frame")
 local UIScale = Instance.new("UIScale")
 local Shadow = Instance.new("ImageLabel")
@@ -131,6 +130,8 @@ local Decor_3 = Instance.new("Frame")
 local Zoom = Instance.new("Frame")
 
 --Properties:
+
+dragGUI(Frame)
 
 MoonLIB.Name = "MoonLIB"
 MoonLIB.Parent = game.CoreGui
