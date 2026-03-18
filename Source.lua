@@ -1138,10 +1138,13 @@ UILabelText.TextColor3 = Color3.fromHex(colorid)
 UILabelText.TextSize = 14.000
 end
 function EpicLib:CreateButton(text, pathname, callback)
+ if Container:FindFirstChild("BTNLib"..text) then
+         Container:FindFirstChild("BTNLib"..text):Destroy()
+     end
     local callback = callback or function() end
     local BTNLib = Instance.new("TextButton")
 
-    BTNLib.Name = "BTNLib"
+    BTNLib.Name = "BTNLib"..tostring(text)
     BTNLib.Parent = Container[pathname]
     BTNLib.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
     BTNLib.BorderColor3 = Color3.fromHex(colorid)
@@ -1160,6 +1163,9 @@ function EpicLib:CreateButton(text, pathname, callback)
 end
 
 function EpicLib:CreateToggle(text, pathname, callback)
+    if Container:FindFirstChild("ToggleFrame"..text) then
+         Container:FindFirstChild("ToggleFrame"..text):Destroy()
+     end
     local actions = {}
     local enabled = false
     text = text or "Toggle"
@@ -1168,7 +1174,7 @@ function EpicLib:CreateToggle(text, pathname, callback)
     local ToggleName = Instance.new("TextLabel")
     local ToggleBTN = Instance.new("TextButton")
 
-    ToggleFrame.Name = "ToggleFrame"
+    ToggleFrame.Name = "ToggleFrame"..tostring(text)
     ToggleFrame.Parent = Container[pathname]
     ToggleFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
     ToggleFrame.BorderColor3 =  Color3.fromHex(colorid)
@@ -1215,7 +1221,9 @@ function EpicLib:CreateToggle(text, pathname, callback)
     end
 
     function EpicLib:CreateSlider(text, pathname, minvalue, maxvalue, callback)
-
+         if Container:FindFirstChild("SliderFrame"..text) then
+            Container:FindFirstChild("SliderFrame"..text):Destroy()
+         end
         text = text or "Slider"
         minvalue = minvalue or 0
         maxvalue = maxvalue or 100
@@ -1230,7 +1238,7 @@ function EpicLib:CreateToggle(text, pathname, callback)
         local TASlider = Instance.new("Frame")
         local TASBTN = Instance.new("TextButton")
 
-        SliderFrame.Name = "SliderFrame"
+        SliderFrame.Name = "SliderFrame"..tostring(text)
         SliderFrame.Parent = Container[pathname]
         SliderFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
         SliderFrame.BorderColor3 =  Color3.fromHex(colorid)
@@ -1332,7 +1340,9 @@ end)
 end
 
 function EpicLib:CreateDropdown(text, pathname, list, callback)
-
+    if Container:FindFirstChild("Dropdown"..text) then
+        Container:FindFirstChild("Dropdown"..text):Destroy()
+    end
     local dropvalue = 0
     local function dropthing()
         dropvalue = dropvalue + 31
@@ -1352,7 +1362,7 @@ function EpicLib:CreateDropdown(text, pathname, list, callback)
     local DropFrameContainer = Instance.new("Frame")
 
 
-    Dropdown.Name = "Dropdown"
+    Dropdown.Name = "Dropdown"..tostring(text)
     Dropdown.Parent = Container[pathname]
     Dropdown.BackgroundColor3 = Color3.fromRGB(24, 24, 24)
     Dropdown.BorderColor3 =  Color3.fromHex(colorid)
