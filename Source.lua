@@ -1,4 +1,5 @@
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 function dragGUI(gui)
 	task.spawn(function()
