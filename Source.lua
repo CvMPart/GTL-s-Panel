@@ -1138,8 +1138,8 @@ UILabelText.TextColor3 = Color3.fromHex(colorid)
 UILabelText.TextSize = 14.000
 end
 function EpicLib:CreateButton(text, pathname, callback)
- if Container:FindFirstChild("BTNLib"..text) then
-         Container:FindFirstChild("BTNLib"..text):Destroy()
+ if Container[pathname]:FindFirstChild("BTNLib"..text) then
+         Container[pathname]:FindFirstChild("BTNLib"..text):Destroy()
      end
     local callback = callback or function() end
     local BTNLib = Instance.new("TextButton")
@@ -1163,8 +1163,8 @@ function EpicLib:CreateButton(text, pathname, callback)
 end
 
 function EpicLib:CreateToggle(text, pathname, callback)
-    if Container:FindFirstChild("ToggleFrame"..text) then
-         Container:FindFirstChild("ToggleFrame"..text):Destroy()
+    if Container[pathname]:FindFirstChild("ToggleFrame"..text) then
+         Container[pathname]:FindFirstChild("ToggleFrame"..text):Destroy()
      end
     local actions = {}
     local enabled = false
@@ -1221,8 +1221,8 @@ function EpicLib:CreateToggle(text, pathname, callback)
     end
 
     function EpicLib:CreateSlider(text, pathname, minvalue, maxvalue, callback)
-         if Container:FindFirstChild("SliderFrame"..text) then
-            Container:FindFirstChild("SliderFrame"..text):Destroy()
+         if Container[pathname]:FindFirstChild("SliderFrame"..text) then
+            Container[pathname]:FindFirstChild("SliderFrame"..text):Destroy()
          end
         text = text or "Slider"
         minvalue = minvalue or 0
@@ -1340,8 +1340,8 @@ end)
 end
 
 function EpicLib:CreateDropdown(text, pathname, list, callback)
-    if Container:FindFirstChild("Dropdown"..text) then
-        Container:FindFirstChild("Dropdown"..text):Destroy()
+    if Container[pathname]:FindFirstChild("Dropdown"..text) then
+        Container[pathname]:FindFirstChild("Dropdown"..text):Destroy()
     end
     local dropvalue = 0
     local function dropthing()
