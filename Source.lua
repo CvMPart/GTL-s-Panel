@@ -1,3 +1,5 @@
+local UserInputService = game:GetService("UserInputService")
+
 function dragGUI(gui)
 	task.spawn(function()
 		local dragging
