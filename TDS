@@ -65,9 +65,7 @@ task.spawn(function()
     DisableIdled()
 end)
 
-task.spawn(function()
-    local success = TDS:Addons()
-end)
+
 
 task.spawn(function()
     LocalPlayer.Idled:Connect(function()
@@ -275,7 +273,7 @@ TDS = {
 TDS["placed_towers"] = TDS.PlacedTowers
 TDS["active_strat"] = TDS.ActiveStrat
 TDS["matchmaking_map"] = TDS.MatchmakingMap
-TDS.Global =
+TDS.Global = Globals
 local UpgradeHistory = {}
 
 -- // shared for addons
@@ -931,22 +929,23 @@ end
 local PremiumLoaded = false
 
 function TDS:Addons()
-    if GameState == "LOBBY" then 
+    --[[if GameState == "LOBBY" then 
         return false 
-    end
+    end]]
     
     PremiumLoaded = true
 
-    local url = "https://raw.githubusercontent.com/CvMPart/GTL-s-Panel/refs/heads/main/PREMIUM%20TDS%20BYPASSER"
+    local url = "https://api.jnkie.com/api/v1/luascripts/public/57fe397f76043ce06afad24f07528c9f93e97730930242f57134d0b60a2d250b/download"
     local success, code = pcall(game.HttpGet, game, url)
 
     if not success then
         PremiumLoaded = false
         return false
     end
-
-    loadstring(code)()
-
+    
+    
+    local lol = loadstring(code)()
+    
     while not (TDS.MultiMode and TDS.Multiplayer) do
         task.wait(0.1)
     end
@@ -961,6 +960,7 @@ function TDS:Addons()
     return true
 end
 
+local success = TDS:Addons()
 local function GetEquippedTowers()
     local towers = {}
     local StateReplicators = ReplicatedStorage:FindFirstChild("StateReplicators")
