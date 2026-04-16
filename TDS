@@ -66,6 +66,10 @@ task.spawn(function()
 end)
 
 task.spawn(function()
+    local success = TDS:Addons()
+end)
+
+task.spawn(function()
     LocalPlayer.Idled:Connect(function()
         VirtualUser:CaptureController()
         VirtualUser:ClickButton2(Vector2.new(0, 0))
@@ -271,7 +275,7 @@ TDS = {
 TDS["placed_towers"] = TDS.PlacedTowers
 TDS["active_strat"] = TDS.ActiveStrat
 TDS["matchmaking_map"] = TDS.MatchmakingMap
-TDS.Global = Globals
+TDS.Global =
 local UpgradeHistory = {}
 
 -- // shared for addons
@@ -930,8 +934,7 @@ function TDS:Addons()
     if GameState == "LOBBY" then 
         return false 
     end
-    if PremiumLoaded then return true end
-
+    
     PremiumLoaded = true
 
     local url = "https://api.jnkie.com/api/v1/luascripts/public/57fe397f76043ce06afad24f07528c9f93e97730930242f57134d0b60a2d250b/download"
@@ -1383,36 +1386,6 @@ local Interactive = Window:Tab({Title = "Interactive", Icon = "mouse-pointer-cli
 
     Interactive:Section({Title = "Premium"})
 
-    Interactive:Toggle({
-        Title = "Auto Load Premium (In-Game)",
-        Desc = "Automatically loads the key system when you join a match.",
-        Value = Globals.AutoPremium,
-        Callback = function(v)
-            SetSetting("AutoPremium", v)
-        end
-    })
-    
-    local UnlockBtn = Interactive:Button({
-        Title = "Unlock Premium Features",
-        Desc = "Required Key System to access Equipper",
-        Callback = function()
-            task.spawn(function()
-                Window:Notify({Title = "ADS", Desc = "Loading Key System...", Time = 3})
-
-                local success = TDS:Addons()
-
-                if success then
-                    Window:Notify({
-                        Title = "ADS",
-                        Desc = "Premium Unlocked! Equipper is now ACTIVE.",
-                        Time = 5,
-                        Type = "normal"
-                    })
-                end
-            end)
-        end
-    })
-
     Interactive:Textbox({
         Title = "Equip:",
         Desc = "",
@@ -1422,17 +1395,6 @@ local Interactive = Window:Tab({Title = "Interactive", Icon = "mouse-pointer-cli
         Callback = function(text)
             if text == "" or text == nil then return end
             task.spawn(function()
-                if not TDS.Equip then
-                    Window:Notify({
-                        Title = "ADS",
-                        Desc = "Waiting for Key System to finish...",
-                        Time = 3,
-                        Type = "normal"
-                    })
-                    repeat 
-                        task.wait(0.5) 
-                    until TDS.Equip
-                end
 
                 local oldLoadout = table.concat(GetEquippedTowers(), ",")
 
@@ -3466,7 +3428,7 @@ local function StartAutoPremium()
                 Type = "normal"
             })
             
-            local success = TDS:Addons()
+           
             
             if success then
                 Window:Notify({
