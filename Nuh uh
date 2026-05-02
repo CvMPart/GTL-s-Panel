@@ -223,7 +223,7 @@ _G.AutoTeleport = true;
 _G.AutoShield = true;
 _G.WeaponsName = "Abyssal Reaver";
 _G.TargetTeleport = nil;
-_G.TeleportDistance = 5;
+_G.TeleportDistance = 10;
 _G.NoForceFieldEnemy = true
 _G.HostileESP = false;
 
@@ -655,15 +655,20 @@ v9:WaitForChild("Message").OnClientEvent:Connect(function(p24, p25, p26)
 		["\""] = "&quot;",
 		["\'"] = "&apos;"
 	})
-	if string.match(v29, "You will be teleport back to") then
+    print(v29)
+	if string.match(v29, "The main island will be") then
         if Settings.AutoFarm == "Stronghold" then
-
+            task.wait(1)
+            _G.AutoEquip = false
+             if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Mysterious Artifact") and game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+               game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):EquipTool(game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Mysterious Artifact"))
+            end
              local args = {
                 "use",
                 {}
             }
-            if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Mysterious Artifact") then
-                game:GetService("Players").LocalPlayer.Backpack:WaitForChild("Mysterious Artifact"):WaitForChild("WeaponRemote"):FireServer(unpack(args))
+            if game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChild("Mysterious Artifact") then
+                game:GetService("Players").LocalPlayer.Character:WaitForChild("Mysterious Artifact"):WaitForChild("WeaponRemote"):FireServer(unpack(args))
             end
             task.wait(5)
 
