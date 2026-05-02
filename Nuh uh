@@ -1,0 +1,692 @@
+local HttpService = game:GetService("HttpService")
+
+--// CONFIG
+local FolderName = "BCWO"
+local FileName = "settings.lua"
+local FilePath = FolderName .. "/" .. FileName
+
+--// DEFAULT SETTINGS
+local DefaultSettings = {
+    AutoFarm = "",
+    TormentMode = false,
+    FriendsOnly = true,
+    Enabled = false
+}
+
+--// CREATE FOLDER (if supported)
+if makefolder and not isfolder(FolderName) then
+    makefolder(FolderName)
+end
+
+--// FUNCTION: Convert table -> lua string
+local function TableToLua(tbl)
+    local str = "{\n"
+    
+    for key, value in pairs(tbl) do
+        if type(value) == "string" then
+            str = str .. string.format('    %s = "%s",\n', key, value)
+        else
+            str = str .. string.format('    %s = %s,\n', key, tostring(value))
+        end
+    end
+    
+    str = str .. "}"
+    return str
+end
+
+--// FUNCTION: Save settings
+local function SaveSettings(settings)
+    local data = "return " .. TableToLua(settings)
+    writefile(FilePath, data)
+end
+
+--// FUNCTION: Load settings
+local function LoadSettings()
+    if not isfile(FilePath) then
+        -- Create default file
+        SaveSettings(DefaultSettings)
+        return DefaultSettings
+    end
+
+    local success, result = pcall(function()
+        return loadstring(readfile(FilePath))()
+    end)
+
+    if success and type(result) == "table" then
+        return result
+    else
+        -- If file is broken → reset
+        SaveSettings(DefaultSettings)
+        return DefaultSettings
+    end
+end
+
+--// LOAD SETTINGS
+local Settings = LoadSettings()
+
+--// AUTO-FIX MISSING KEYS
+for key, value in pairs(DefaultSettings) do
+    if Settings[key] == nil then
+        Settings[key] = value
+    end
+end
+
+if _G.RenderSteppedMain then
+    _G.RenderSteppedMain:Disconnect()
+     _G.RenderSteppedMain = nil
+end
+
+local TextChatService = game:GetService("TextChatService")
+local player = game.Players.LocalPlayer -- Or define player another way
+
+-- Wait for the General channel
+local textChannel = TextChatService:WaitForChild("TextChannels"):WaitForChild("RBXGeneral")
+
+-- Force the player to say something
+if game.PlaceId ~= 8811271345 then
+    textChannel:SendAsync("/skip")
+    textChannel:SendAsync("/skipall")
+end
+
+
+local ESPLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/CvMPart/GTL-s-Panel/refs/heads/main/ESPBoxesource.lua'))()
+local library = loadstring(game:HttpGet('https://raw.githubusercontent.com/CvMPart/GTL-s-Panel/refs/heads/main/Source.lua'))()
+
+local main = library:CreateWindow("GTL'S Panel", "#87E5FF", 9160626035)
+local TeleportService = game:GetService("TeleportService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+local EmptySpot = Vector3.new(0,10000,0)
+
+local Player = Players.LocalPlayer
+
+local Backpack = Player:WaitForChild("Backpack")
+
+local function GetTarget()
+
+    local BestOption = nil
+    local HighestHP = 0
+    local IsBoss = false
+
+    for _, v in pairs(workspace:GetChildren()) do
+        local humanoid = v:FindFirstChildOfClass("Humanoid")
+
+        if v:FindFirstChild("EnemyMain") and humanoid and humanoid.Health > 0 and v.PrimaryPart and Player.Character and Player.Character.PrimaryPart and (v.PrimaryPart.Position - Player.Character.PrimaryPart.Position).Magnitude < 100000 then
+              local currentHP = humanoid.Health
+            if _G.NoForceFieldEnemy and not v:FindFirstChildOfClass("ForceField") or not _G.NoForceFieldEnemy then
+               
+                if v:FindFirstChild("Boss") then
+                    if not IsBoss or currentHP > HighestHP then
+                        BestOption = v
+                        HighestHP = currentHP
+                        IsBoss = true
+                    end
+                elseif not IsBoss then
+                    -- Only pick normal enemies if no boss found yet
+                    if currentHP > HighestHP then
+                        BestOption = v
+                        HighestHP = currentHP
+                    end
+                end
+               
+            end
+        end
+    end
+
+    return BestOption, IsBoss
+end
+
+local OresList = {
+    "Iron",
+    "Lead",
+    "Gold",
+    "Diamond",
+    "Cobalt",
+    "Oureclasium",
+    "Tungsten",
+    "Titanium",
+    "Mithril",
+    "Adamntine",
+    "Crystal",
+    "Viridis",
+    "Purite",
+    "Hatrite",
+    "Hevenite",
+    "Hellite",
+    "Gemstone of Purity",
+    "Gemstone of Hatred",
+    "Moonstone",
+    "Forbidden Crystal",
+}
+local Absorb = {
+    ["Benedictus, The Avatar of Luminosity"] = {
+        Health = 15000,
+        Weapons = "Excalibur",
+    },
+    ["Astaroth, The Monarch of Darkness"] = {
+        Health = 25000,
+        Weapons = "Clarent",
+    },
+}
+if _G.Thread then
+    for _, v in pairs(_G.Thread) do
+        pcall(function()
+            task.cancel(v)
+        end)
+    end
+end
+_G.Thread = {}
+local function GetWeapons()
+    local List = {}
+    -- Get tools from Backpack
+    local backpack = Player:FindFirstChild("Backpack")
+    if backpack then
+        for _, item in ipairs(backpack:GetChildren()) do
+            if item:IsA("Tool") then
+                table.insert(List, item.Name)
+            end
+        end
+    end
+
+    -- Get tools from Character (equipped)
+    local character = Player.Character
+    if character then
+        for _, item in ipairs(character:GetChildren()) do
+            if item:IsA("Tool") then
+                table.insert(List, item.Name)
+            end
+        end
+    end
+    return List -- Example {"Sword", "Gun", "Gun1"}
+end
+local GodModeDebounce = false
+_G.InfJump = nil
+_G.BackdoorGodmode = true
+local LastTP = nil
+
+local function InfiniteJump()
+    local infJumpDebounce = false
+	_G.infJump = UserInputService.JumpRequest:Connect(function()
+		if not infJumpDebounce then
+			infJumpDebounce = true
+			Player.Character:FindFirstChildWhichIsA("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+			wait()
+			infJumpDebounce = false
+		end
+	end)
+end
+local ForceWeapons = ""
+_G.AutoHit = true;
+_G.AutoEquip = true;
+_G.AutoTeleport = true;
+_G.AutoShield = true;
+_G.WeaponsName = "Abyssal Reaver";
+_G.TargetTeleport = nil;
+_G.TeleportDistance = 5;
+_G.NoForceFieldEnemy = true
+_G.HostileESP = false;
+
+_G.SpeedToggle = true;
+_G.Speed = 220;
+InfiniteJump()
+
+local HostileSettings = {
+        RemoveOnDeath = true,
+        MaxDistance = 850, -- Max Distance for esp to render (IN METERS).
+        MaxBoxSize = Vector3.new(15, 15, 0), -- Max size for ESP boxes.
+        DestroyOnRemove = true, -- Whether the ESP objects should be deleted when the character is parented to nil, change this if you want.
+        TeamColors = false, -- Whether or not the ESP color is based on team colors.
+        TeamBased = false, -- Whether or not the ESP should render ESP on teammates. 
+        BoxTopOffset = Vector3.new(0, 1, 0), -- Offset for where the top of the box should be
+        
+        Boxes = {
+            Enabled = true,
+            Color = Color3.new(1, 0, 0),
+            Thickness = 1,
+        },
+        Names = {
+            Distance = true,
+            Health = true, -- Adds health values to the nametag.
+            Enabled = true,
+            Resize = true, -- Resizes the text based on the distance from the camera to the player so text doesn't get ridiculously large the further you are from the target.
+            ResizeWeight = 0.05, -- How quickly names are resized based on the distance from the camera.
+            Color = Color3.new(1, 1, 1),
+            Size = 18,
+            Font = 1,
+            Center = true,
+            Outline = true,
+        },
+        Tracers = {
+            Enabled = true,
+            Thickness = 0,
+            Color = Color3.new(1, 0, 0),
+        }
+}
+local OreSettings = {
+        RemoveOnDeath = true,
+        MaxDistance = 850, -- Max Distance for esp to render (IN METERS).
+        MaxBoxSize = Vector3.new(15, 15, 0), -- Max size for ESP boxes.
+        DestroyOnRemove = true, -- Whether the ESP objects should be deleted when the character is parented to nil, change this if you want.
+        TeamColors = false, -- Whether or not the ESP color is based on team colors.
+        TeamBased = false, -- Whether or not the ESP should render ESP on teammates. 
+        BoxTopOffset = Vector3.new(0, 1, 0), -- Offset for where the top of the box should be
+        
+        Boxes = {
+            Enabled = true,
+            Color = Color3.new(1, 0, 0),
+            Thickness = 1,
+        },
+        Names = {
+            Distance = true,
+            Health = false, -- Adds health values to the nametag.
+            Enabled = true,
+            Resize = true, -- Resizes the text based on the distance from the camera to the player so text doesn't get ridiculously large the further you are from the target.
+            ResizeWeight = 0.05, -- How quickly names are resized based on the distance from the camera.
+            Color = Color3.new(1, 1, 1),
+            Size = 18,
+            Font = 1,
+            Center = true,
+            Outline = true,
+        },
+        Tracers = {
+            Enabled = true,
+            Thickness = 0,
+            Color = Color3.new(1, 0, 0),
+        }
+}
+local SelectedOre = "",
+main:CreateTab("Primary")
+main:CreateLabel("Weapons", "Primary")
+
+main:CreateToggle("HostileESP", "Primary", function(togglestate)
+   
+    _G.HostileESP = togglestate
+    if _G.HostileESP then
+    ESPLib.Object:ShowDrawings()
+        for _, v in pairs(workspace:GetChildren()) do
+            if v:FindFirstChild("EnemyMain") then
+                ESPLib.Object:New(v,HostileSettings)
+            end
+        end
+        else
+
+    end
+
+end)
+
+main:CreateToggle("GodMode", "Primary", function(togglestate)
+   
+    _G.BackdoorGodmode = togglestate
+end)
+main:CreateToggle("Ignore Forcefield Enemies", "Primary", function(togglestate)
+   
+    _G.NoForceFieldEnemy = togglestate
+end)
+
+main:CreateToggle("Auto_Hit (Sword)", "Primary", function(togglestate)
+    _G.AutoHit = togglestate
+end)
+main:CreateSlider("Hit_Distance", "Primary", 1, 15, function(args) 
+    _G.TeleportDistance = arg
+end)
+main:CreateToggle("Auto_Equip (ETC)", "Primary", function(togglestate)
+    _G.AutoEquip = togglestate
+end)
+main:CreateToggle("AutoShield (Shield)", "Primary", function(togglestate)
+    _G.AutoShield = togglestate
+end)
+main:CreateToggle("Teleport (Backstab)", "Primary", function(togglestate)
+    _G.AutoTeleport = togglestate
+end)
+main:CreateButton("Refresh_List", "Primary", function()
+    main:CreateDropdown("Weapons_List", "Primary", GetWeapons(), function(args) 
+        _G.WeaponsName = args
+    end)
+end)
+main:CreateButton("Reset", "Primary", function()
+    _G.WeaponsName = ""
+end)
+main:CreateDropdown("Weapons_List", "Primary", GetWeapons(), function(args) 
+   _G.WeaponsName = args
+end)
+
+main:CreateTab("MISC")
+
+main:CreateLabel("👀", "MISC")
+main:CreateSlider("Speed", "MISC", 25, 550, function(args) 
+    _G.Speed = args
+end)
+main:CreateToggle("Toggle Speed", "MISC", function(togglestate)
+    _G.SpeedToggle = togglestate
+end)
+
+main:CreateButton("Infinite_Jump", "MISC", function()
+    InfiniteJump()
+end)
+
+main:CreateButton("Rejoin", "MISC", function()
+    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, Player)
+end)
+
+main:CreateTab("MS-Helper")
+
+main:CreateLabel("👀", "MS-Helper")
+
+main:CreateButton("1", "MS-Helper", function()
+    local Character = Player.Character
+  if Character then
+    Character.PrimaryPart.CFrame = CFrame.new(Vector3.new(1004, 140, 1479))
+  end
+end)
+main:CreateButton("2", "MS-Helper", function()
+    local Character = Player.Character
+   if Character then
+    Character.PrimaryPart.CFrame = CFrame.new(Vector3.new(-481, 141, 1949))
+  end
+end)
+main:CreateButton("3", "MS-Helper", function()
+    local Character = Player.Character
+    if Character then
+    Character.PrimaryPart.CFrame = CFrame.new(Vector3.new(-1880, 145, 1508))
+  end
+end)
+main:CreateButton("Void", "MS-Helper", function()
+    local Character = Player.Character
+    if Character then
+    Character.PrimaryPart.CFrame = CFrame.new(Vector3.new(0, 1000, 0))
+  end
+end)
+if workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ores") then
+    local function OresUpdate()
+        if SelectedOre ~= "" then
+            for _,v in pairs(workspace.Map.Ores:GetChildren()) do
+                if string.match(v.Name, SelectedOre) then
+                    ESPLib.Object:New(v,OreSettings)
+                end
+            end
+        end
+    end
+
+    main:CreateTab("Ores")
+
+    main:CreateLabel("👀", "Ores")
+    for _,v in pairs(OresList) do
+        main:CreateButton(v, "Ores", function()
+            SelectedOre = v
+            OresUpdate()
+        end)
+    end
+end
+
+
+-- Loop --
+
+local function CallFire()
+if _G.RenderSteppedMain then
+    _G.RenderSteppedMain:Disconnect()
+     _G.RenderSteppedMain = nil
+end
+
+_G.RenderSteppedMain = game:GetService("RunService").RenderStepped:Connect(function()
+    local Character = Player.Character
+    local PlayerGui = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
+    if PlayerGui then
+        local QTEsSignal = PlayerGui:FindFirstChild("QTEs")
+        if QTEsSignal then
+              local SignalScript = QTEsSignal:FindFirstChildOfClass("LocalScript")
+            local SignalEvent = QTEsSignal:FindFirstChildOfClass("RemoteEvent")
+            if SignalScript and not SignalScript.Disabled then
+                SignalScript.Disabled = true
+                local function FireSignal()
+                local args = {
+                    game:GetService("Players").LocalPlayer.Character,
+                    true
+                }
+                SignalEvent:FireServer(unpack(args))
+                end
+
+                SignalEvent.OnClientEvent:Connect(FireSignal)
+            end
+        end
+      
+    end
+    if Character then
+        _G.Thread.Hit = task.spawn(function()
+        if _G.AutoHit and _G.WeaponsName then
+            local SelectedWeapons = _G.WeaponsName
+                    if ForceWeapons ~= "" then
+                        SelectedWeapons = ForceWeapons
+                    end
+            if Character and Character:FindFirstChild(SelectedWeapons) then
+                
+                if Character:FindFirstChild(SelectedWeapons):FindFirstChild("Damage") and Character:FindFirstChild(SelectedWeapons):FindFirstChild("Speed") then
+                
+                
+                local args = {
+                                "hit",
+                                {
+                                Character:FindFirstChild(SelectedWeapons):FindFirstChild("Damage").Value or 0,
+                                    Character:FindFirstChild(SelectedWeapons):FindFirstChild("Speed").Value or 0
+                                }
+                     }
+                     if SelectedWeapons == "Abyssal Reaver" then
+                    args = {
+                        "AbyssalReaverSlash"
+                    }
+                    elseif SelectedWeapons == "The Light Illuminating the World" then
+
+                    args = {
+                            "Swing",
+                            {
+                                5
+                            }
+                        }
+
+                     end
+                    Character:WaitForChild(SelectedWeapons):WaitForChild("RemoteFunction"):InvokeServer(unpack(args))
+                end
+            end
+        end
+         end)
+          
+         _G.Thread.Equip = task.spawn(function()
+         if _G.AutoEquip and _G.WeaponsName then
+        local SelectedWeapons = _G.WeaponsName
+        if ForceWeapons ~= "" then
+            SelectedWeapons = ForceWeapons
+        end
+            if game:GetService("Players").LocalPlayer:WaitForChild("Backpack") and game:GetService("Players").LocalPlayer.Backpack:FindFirstChild(SelectedWeapons) then
+                if Character and Character:FindFirstChild("Humanoid") then
+                    Character:WaitForChild("Humanoid"):EquipTool(game:GetService("Players").LocalPlayer.Backpack:FindFirstChild(SelectedWeapons))
+                
+                end
+            end
+        end
+         end)
+         _G.Thread.God = task.spawn(function()
+         if _G.BackdoorGodmode then
+            if not GodModeDebounce then
+                GodModeDebounce = true
+                 local DashInitiator = game:GetService("Players").LocalPlayer.Character:FindFirstChild("DashInitiator")
+                if DashInitiator then
+                    DashInitiator:FireServer(game:GetService("Players").LocalPlayer.Character)
+                end
+                task.delay(0.15,function()
+                    GodModeDebounce = false
+                end)
+            end
+           
+        end
+         end)
+         _G.Thread.Shield = task.spawn(function()
+        if _G.AutoShield then
+            if game:GetService("Players").LocalPlayer.Character:FindFirstChild("Shield") and game:GetService("Players").LocalPlayer.Character:FindFirstChild("Shield"):FindFirstChild("ShieldRemote") then
+                game:GetService("Players").LocalPlayer.Character:FindFirstChild("Shield"):FindFirstChild("ShieldRemote"):FireServer()
+            end
+        end
+         end)
+         _G.Thread.Teleport = task.spawn(function()
+         if _G.AutoTeleport then
+            local humanoid = Character:FindFirstChild("Humanoid")
+            local root = Character:FindFirstChild("HumanoidRootPart")
+
+            if root and humanoid and humanoid.Health > 0 then
+                local Option, IsBoss = GetTarget()
+                
+
+
+                if _G.TargetTeleport and not _G.TargetTeleport.Parent then
+                    _G.TargetTeleport = nil
+                     ForceWeapons = ""
+                end
+                if not _G.TargetTeleport then
+                    _G.TargetTeleport = Option
+                    ForceWeapons = ""
+                end
+            
+                if _G.TargetTeleport and Option then
+                    if not _G.TargetTeleport:FindFirstChild("Boss") then
+                        _G.TargetTeleport = Option
+                        ForceWeapons = ""
+                    end
+                end
+                
+                local target = _G.TargetTeleport
+
+                if target and target:FindFirstChildOfClass("ForceField") then
+                    if _G.NoForceFieldEnemy then
+                        _G.TargetTeleport = Option
+                        target = Option
+                    end
+                end
+                if target and Absorb[target.Name] then
+                    local Info = Absorb[target.Name]
+                    if Info.Health and Info.Weapons and target:FindFirstChildOfClass("Humanoid") and target:FindFirstChildOfClass("Humanoid").Health <= Info.Health then
+                        ForceWeapons = Info.Weapons
+                        else
+                        ForceWeapons = ""
+                    end
+                end
+                if target then
+                     root.Anchored = false
+                    local targetHumanoid = target:FindFirstChildOfClass("Humanoid")
+                    local targetRoot = target:FindFirstChild("HumanoidRootPart")
+
+                    if targetHumanoid and targetHumanoid.Health > 0 and targetRoot then
+                        
+                        -- 🔥 USE DISTANCE AS OFFSET (NOT CHECK)
+                        local distanceAway = _G.TeleportDistance or 10
+
+                        local behindOffset = targetRoot.CFrame.LookVector * -distanceAway
+                        local newPosition = targetRoot.Position + behindOffset
+
+                        root.CFrame = CFrame.new(newPosition, targetRoot.Position)
+                        LastTP = CFrame.new(newPosition, targetRoot.Position)
+                    else
+                        _G.TargetTeleport = nil
+                    end
+                else
+                if _G.NoForceFieldEnemy then
+                    root.Anchored = true
+                    root.CFrame = CFrame.new(EmptySpot)
+                else
+                    root.Anchored = false
+                end
+                
+                end
+            end
+
+        else
+            if root then
+                 root.Anchored = false
+            end
+           
+        end
+         end)
+          _G.Thread.Speed = task.spawn(function()
+            if _G.SpeedToggle and _G.Speed then
+            if Character:FindFirstChildOfClass("Humanoid")  then
+                Character:FindFirstChildOfClass("Humanoid").WalkSpeed = _G.Speed or 100
+            end
+            end
+         end)
+
+    end
+   
+   
+end)
+end
+workspace.ChildAdded:Connect(function(v)
+    if _G.HostileESP then
+         task.delay(0.1,function()
+            if v:FindFirstChild("EnemyMain") then
+                ESPLib.Object:New(v,HostileSettings)
+            end
+        end)
+    end
+    if workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ores") then
+        workspace.Map.Ores.ChildAdded:Connect(function(v)
+            if string.match(v.Name, SelectedOre) then
+                ESPLib.Object:New(v,OreSettings)
+            end
+            
+         end)
+
+    end
+   
+
+end)
+
+CallFire()
+local v1 = game:GetService("ReplicatedStorage")
+local v9 = v1:WaitForChild("Remotes")
+
+v9:WaitForChild("Message").OnClientEvent:Connect(function(p24, p25, p26)
+	-- upvalues: (copy) v_u_21
+	local v27 = p26 or Color3.new(1, 1, 0)
+	local v28 = (not p24 and "" or "[" .. p24 .. "]: ") .. p25
+	if not v27 then
+		Color3.new(1, 1, 0)
+	end
+	local v29 = v28:gsub("&", "&amp;"):gsub("[<>\"\'\"]", {
+		["<"] = "&lt;",
+		[">"] = "&gt;",
+		["\""] = "&quot;",
+		["\'"] = "&apos;"
+	})
+	if string.match(v29, "You will be teleport back to") then
+        if Settings.AutoFarm == "Stronghold" then
+
+             local args = {
+                "use",
+                {}
+            }
+            if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Mysterious Artifact") then
+                game:GetService("Players").LocalPlayer.Backpack:WaitForChild("Mysterious Artifact"):WaitForChild("WeaponRemote"):FireServer(unpack(args))
+            end
+            task.wait(5)
+
+             local args = {
+                "createParty",
+                {
+                    settings = {
+                        Visual = true,
+                        FriendsOnly = true,
+                    },
+                    subplace = "Stronghold"
+                }
+            }
+
+            local remote = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("PartySystem"):WaitForChild("PartyFunction"):InvokeServer(unpack(args))
+        --game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("PartySystem"):WaitForChild("PartyFunction"):InvokeServer(unpack(args1))
+        task.wait(1.5)
+            local args = {
+                "joinSubplace",
+                {}
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("PartySystem"):WaitForChild("PartyFunction"):InvokeServer(unpack(args))
+
+        end
+    end
+end)
