@@ -160,12 +160,12 @@ local OresList = {
     "Forbidden Crystal",
 }
 local Absorb = {
-    ["Benedictus, The Avatar of Luminosity"] = {
-        Health = 15000,
+    ["Benedictus"] = {
+        Health = 25000,
         Weapons = "Excalibur",
     },
-    ["Astaroth, The Monarch of Darkness"] = {
-        Health = 25000,
+    ["Astaroth"] = {
+        Health = 35000,
         Weapons = "Clarent",
     },
 }
@@ -427,12 +427,23 @@ if _G.RenderSteppedMain then
     _G.RenderSteppedMain:Disconnect()
      _G.RenderSteppedMain = nil
 end
+local function IsAbsorb(name)
+    for key, data in pairs(Absorb) do
+        if string.match(name, key) then
+            return key 
+        end
+    end
+    return false
+end
+
+local Sky = false
 
 _G.RenderSteppedMain = game:GetService("RunService").RenderStepped:Connect(function()
     local Character = Player.Character
     local PlayerGui = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
     if PlayerGui then
         local QTEsSignal = PlayerGui:FindFirstChild("QTEs")
+       --[[
         if QTEsSignal then
               local SignalScript = QTEsSignal:FindFirstChildOfClass("LocalScript")
             local SignalEvent = QTEsSignal:FindFirstChildOfClass("RemoteEvent")
@@ -449,10 +460,21 @@ _G.RenderSteppedMain = game:GetService("RunService").RenderStepped:Connect(funct
                 SignalEvent.OnClientEvent:Connect(FireSignal)
             end
         end
+       ]]
       
     end
     if Character then
+        if workspace:FindFirstChild("FakeSky") and not Sky then
+            Sky = true
+            _G.AutoHit = false
+
+            task.delay(5,function()
+                _G.AutoHit = true
+            end)
+        end
+
         _G.Thread.Hit = task.spawn(function()
+
         if _G.AutoHit and _G.WeaponsName then
             local SelectedWeapons = _G.WeaponsName
                     if ForceWeapons ~= "" then
@@ -560,13 +582,18 @@ _G.RenderSteppedMain = game:GetService("RunService").RenderStepped:Connect(funct
                         target = Option
                     end
                 end
-                if target and Absorb[target.Name] then
-                    local Info = Absorb[target.Name]
+              
+                if target then
+                  local AbsorbInfo = IsAbsorb(target.Name)
+                  if AbsorbInfo then
+                        local Info = Absorb[AbsorbInfo]
                     if Info.Health and Info.Weapons and target:FindFirstChildOfClass("Humanoid") and target:FindFirstChildOfClass("Humanoid").Health <= Info.Health then
                         ForceWeapons = Info.Weapons
                         else
                         ForceWeapons = ""
                     end
+                  end
+                    
                 end
                 if target then
                      root.Anchored = false
