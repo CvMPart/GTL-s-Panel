@@ -1,5 +1,5 @@
 repeat task.wait(.1) until game:IsLoaded()
-
+task.wait(2)
 local HttpService = game:GetService("HttpService")
 
 --// CONFIG
