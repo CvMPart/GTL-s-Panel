@@ -441,6 +441,19 @@ end
 
 local Sky = false
 
+function breakVelocity()
+	local Character = Player.Character
+	if Character and Character.PrimaryPart then
+		 local V3 = Vector3.new(0, 0, 0)
+	     for _, v in ipairs(Character:GetDescendants()) do
+	        if v:IsA("BasePart") then
+	            v.Velocity, v.RotVelocity = V3, V3
+	        end
+	    end
+	end
+   
+end
+
 _G.RenderSteppedMain = game:GetService("RunService").RenderStepped:Connect(function()
     local Character = Player.Character
     local PlayerGui = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
@@ -558,8 +571,7 @@ _G.RenderSteppedMain = game:GetService("RunService").RenderStepped:Connect(funct
 
             if root and humanoid and humanoid.Health > 0 then
                 local Option, IsBoss = GetTarget()
-                
-
+                breakVelocity()
 
                 if _G.TargetTeleport and not _G.TargetTeleport.Parent then
                     _G.TargetTeleport = nil
