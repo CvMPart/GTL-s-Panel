@@ -459,7 +459,7 @@ _G.RenderSteppedMain = game:GetService("RunService").RenderStepped:Connect(funct
     local PlayerGui = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
     if PlayerGui then
         local QTEsSignal = PlayerGui:FindFirstChild("QTEs")
-       --[[
+       
         if QTEsSignal then
               local SignalScript = QTEsSignal:FindFirstChildOfClass("LocalScript")
             local SignalEvent = QTEsSignal:FindFirstChildOfClass("RemoteEvent")
@@ -470,13 +470,15 @@ _G.RenderSteppedMain = game:GetService("RunService").RenderStepped:Connect(funct
                     game:GetService("Players").LocalPlayer.Character,
                     true
                 }
-                SignalEvent:FireServer(unpack(args))
-                end
+                task.delay(0.25,function()
+                    SignalEvent:FireServer(unpack(args))
+                end)
+             end
 
                 SignalEvent.OnClientEvent:Connect(FireSignal)
             end
         end
-       ]]
+       
       
     end
     if Character then
@@ -697,7 +699,6 @@ v9:WaitForChild("Message").OnClientEvent:Connect(function(p24, p25, p26)
 		["\""] = "&quot;",
 		["\'"] = "&apos;"
 	})
-    print(v29)
 	if string.match(v29, "The main island will be") then
         if Settings.AutoFarm == "Stronghold" then
             task.wait(1)
