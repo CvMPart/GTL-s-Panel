@@ -766,6 +766,9 @@ v9:WaitForChild("Message").OnClientEvent:Connect(function(p24, p25, p26)
              if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Mysterious Artifact") and game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
                game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):EquipTool(game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Mysterious Artifact"))
             end
+            if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Arctic Core") and game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+               game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):EquipTool(game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Arctic Core"))
+            end
              local args = {
                 "use",
                 {}
