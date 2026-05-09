@@ -1,5 +1,4 @@
-repeat task.wait(.1) until game:IsLoaded()
-task.wait(5)
+
 local HttpService = game:GetService("HttpService")
 
 --// CONFIG
@@ -132,13 +131,22 @@ local function GetTarget()
                         HighestHP = currentHP
                     end
                 end
-               
+              
             end
         end
     end
 
     return BestOption, IsBoss
 end
+local function touchinterest(obj)
+    if obj and obj:IsA("TouchTransmitter") then
+         firetouchinterest(game.Players.LocalPlayer.Character.PrimaryPart, obj.Parent, 0)
+    end
+end
+
+local Present = {
+    "RewardPresent",
+}
 
 local OresList = {
     "Iron",
@@ -225,6 +233,7 @@ _G.AutoEquip = true;
 _G.AutoTeleport = true;
 _G.AutoShield = true;
 _G.WeaponsName = "Abyssal Reaver";
+--_G.WeaponsName = "Omega Death Scythe";
 _G.TargetTeleport = nil;
 _G.TeleportDistance = 10;
 _G.NoForceFieldEnemy = true
@@ -529,7 +538,21 @@ _G.RenderSteppedMain = game:GetService("RunService").RenderStepped:Connect(funct
             end
         end
          end)
-          
+          _G.Thread.RewardCheck = task.spawn(function()
+             if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character.PrimaryPart then
+                for i, v in pairs(workspace:GetChildren()) do
+                    if table.find(Present,v.Name) then
+                        if v:FindFirstChild("TouchInterest") then
+                             touchinterest(v.TouchInterest)
+                         elseif v:FindFirstChild("Present") and v:FindFirstChild("Present"):FindFirstChild("TouchInterest") then
+
+                             touchinterest(v:FindFirstChild("Present"):FindFirstChild("TouchInterest"))
+                        end
+                       
+                    end
+                end
+            end
+          end)  
          _G.Thread.Equip = task.spawn(function()
          if _G.AutoEquip and _G.WeaponsName then
         local SelectedWeapons = _G.WeaponsName
@@ -632,8 +655,8 @@ _G.RenderSteppedMain = game:GetService("RunService").RenderStepped:Connect(funct
                     end
                 else
                 if _G.NoForceFieldEnemy then
-                    root.Anchored = true
-                    root.CFrame = CFrame.new(EmptySpot)
+                    --root.Anchored = true
+                    --root.CFrame = CFrame.new(EmptySpot)
                 else
                     root.Anchored = false
                 end
@@ -736,5 +759,42 @@ v9:WaitForChild("Message").OnClientEvent:Connect(function(p24, p25, p26)
             game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("PartySystem"):WaitForChild("PartyFunction"):InvokeServer(unpack(args))
 
         end
+        elseif string.match(v29, "The Last Christmas Spirit has awarded") then
+       
+            task.wait(1)
+            _G.AutoEquip = false
+             if game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Mysterious Artifact") and game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+               game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):EquipTool(game:GetService("Players").LocalPlayer.Backpack:FindFirstChild("Mysterious Artifact"))
+            end
+             local args = {
+                "use",
+                {}
+            }
+            if game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChild("Arctic Core") then
+                game:GetService("Players").LocalPlayer.Character:WaitForChild("Arctic Core"):WaitForChild("WeaponRemote"):FireServer(unpack(args))
+            end
+            task.wait(5)
+
+             local args = {
+                "createParty",
+                {
+                    settings = {
+                        Visual = true,
+                        FriendsOnly = true,
+                    },
+                    subplace = "ArcticZone"
+                }
+            }
+
+            local remote = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("PartySystem"):WaitForChild("PartyFunction"):InvokeServer(unpack(args))
+        --game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("PartySystem"):WaitForChild("PartyFunction"):InvokeServer(unpack(args1))
+        task.wait(1.5)
+            local args = {
+                "joinSubplace",
+                {}
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("PartySystem"):WaitForChild("PartyFunction"):InvokeServer(unpack(args))
+
+        
     end
 end)
